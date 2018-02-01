@@ -1,20 +1,4 @@
-library(rvest)
-library(stringi)
-library(stringr)
-library(textclean)
-
-#data components
-
-type<-".overline"
-title<-".highwire-cite-title"
-abstract<-"#p-1"
-abstract_rev<-"#p-11"
-date_etc<-".meta-line"
-body_text<-".article__body"
-author<-"#contrib-group-1"
-affliation<-".affiliation-list"
-
-get_article_list<-function(term, A=2007, B=2017){
+get_article_list<-function(term, max=NA, A=2007, B=2017){
 
   #get list of articles
   articles<-list()
@@ -27,10 +11,10 @@ get_article_list<-function(term, A=2007, B=2017){
           "-12-31%20jcode%3Asci%20numresults%3A100%20sort%3Apublication-date%20direction%3Aascending%20format_result%3Astandard")
 
 
-    html1<-read_html(base_html)
-    how_many_res<- html1 %>% html_nodes("h2") %>% html_text()
+    html1<-xml2::read_html(base_html)
+    how_many_res<- html1 %>% rvest::html_nodes("h2") %>% rvest::html_text()
     x<-substr(how_many_res[1],1,nchar(how_many_res[1])-9)
-    count<-as.numeric(gsub(",","",stri_extract_last_words(x)))
+    count<-as.numeric(gsub(",","",stringi::stri_extract_last_words(x)))
     #print(count)
     pages<-ceiling(count/100)
 
@@ -42,20 +26,40 @@ get_article_list<-function(term, A=2007, B=2017){
         html_temp<-paste0(base_html, "?page=", i)
       }
 
-      page_temp<-read_html(html_temp)
+      page_temp<-xml2::read_html(html_temp)
 
-      res_temp <- page_temp %>% html_nodes(".variant-full-text") %>% html_attr("href")
+      res_temp <- page_temp %>% rvest::html_nodes(".variant-full-text") %>% rvest::html_attr("href")
 
       articles<-c(articles,res_temp)
+      if(!is.na(max)){
+          if(length(articles>=max)){
+              return(list(term=term, articles=articles))
+          }
+      }
+
     }
   }
 
-  return(articles)
+  return(list(term=term, articles=articles))
 }
 
 
 
-get_details<-function(article_list){
+get_details<-function(articles){
+
+    term<-articles$term
+    article_list<-articles$articles
+
+    #data components
+
+    type<-".overline"
+    title<-".highwire-cite-title"
+    abstract<-"#p-1"
+    abstract_rev<-"#p-11"
+    date_etc<-".meta-line"
+    body_text<-".article__body"
+    author<-"#contrib-group-1"
+    affliation<-".affiliation-list"
   #get actual stuff
   results_list<-list()
 
@@ -64,27 +68,27 @@ get_details<-function(article_list){
 
     url1<-article_list[[i]]
 
-    x1<-read_html(paste0("http://science.sciencemag.org",url1))
+    x1<-xml2::read_html(paste0("http://science.sciencemag.org",url1))
 
-    #x1<-read_html("http://science.sciencemag.org/content/359/6373/309.full")
+    #x1<-xml2::read_html("http://science.sciencemag.org/content/359/6373/309.full")
 
 
     #add chcek is already in data base and add under search term
     #add check type is %in% c("Review", "Report", "Research Article")
 
-    title_text<- x1 %>% html_node(title) %>% html_text()
-    type_text<-x1 %>% html_node(type) %>% html_text()
+    title_text<- x1 %>% rvest::html_node(title) %>% rvest::html_text()
+    type_text<-x1 %>% rvest::html_node(type) %>% rvest::html_text()
     print(type_text)
     if(type_text%in% c("Review", "Report", "Research Article")){
 
       if(type_text=="Review"){
         #if type is Review
-        abstract_text<-x1 %>% html_node(abstract_rev) %>% html_text()
+        abstract_text<-x1 %>% rvest::html_node(abstract_rev) %>% rvest::html_text()
       }else{
-        abstract_text<-x1 %>% html_node(abstract) %>% html_text()
+        abstract_text<-x1 %>% rvest::html_node(abstract) %>% rvest::html_text()
         k=2
         while(nchar( abstract_text)< 500){
-          abstract_text<-x1 %>% html_node(paste0("#p-",k)) %>% html_text()
+          abstract_text<-x1 %>% rvest::html_node(paste0("#p-",k)) %>% rvest::html_text()
           k=k+1
         }
       }
@@ -93,7 +97,7 @@ get_details<-function(article_list){
 
 
 
-      authors<-x1 %>% html_node(author) %>% html_text() #needs parsing
+      authors<-x1 %>% rvest::html_node(author) %>% rvest::html_text() #needs parsing
 
 
 
@@ -103,15 +107,15 @@ get_details<-function(article_list){
         author_split2<-subset(author_split, nchar(author_split)>3)
 
         author_split3<-trimws(gsub('[[:digit:]]+', '', author_split2))
-        author_list <- author_split3
+        author_list <- gsub('[[:punct:] ]+',' ',author_split3)
 
-        affliation_text<-x1 %>% html_node(affliation) %>% html_text() #needs parsing
+        affliation_text<-x1 %>% rvest::html_node(affliation) %>% rvest::html_text() #needs parsing
         affliations<-strsplit(affliation_text, "\\.")
 
         affiliations<-gsub("^\\d+", "", affliations[[1]])
 
         affil_list <- rep(list(NA),length(author_split3))
-        names(affil_list) <- author_split3
+        names(affil_list) <- author_list
 
         temp1<-substr(author_split2, nchar(author_split2), nchar(author_split2))
 
@@ -138,15 +142,15 @@ get_details<-function(article_list){
         }
 
       }else{
-        author_list<-authors
+        author_list<-gsub('[[:punct:] ]+',' ',authors)
         affiliations<-affliation_text
         affil_list<-list(1)
       }
 
-      date_etc<-try(x1 %>% html_node(date_etc) %>% html_text(), silent = TRUE)
+      date_etc<-try(x1 %>% rvest::html_node(date_etc) %>% rvest::html_text(), silent = TRUE)
 
       if(class(date_etc)!="try-error"){
-        #date_etc<-x1 %>% html_node(date_etc) %>% html_text()#needs parsing
+        #date_etc<-x1 %>% rvest::html_node(date_etc) %>% rvest::html_text()#needs parsing
         d1<-gregexpr(pattern ='DOI:',date_etc)
         doi_address<-trimws(substring(date_etc, (d1[[1]]+4) , nchar(date_etc) ))
 
@@ -167,7 +171,7 @@ get_details<-function(article_list){
       }
 
 
-      body1<- x1 %>% html_node(body_text) %>% html_text() #cut after "References and Notes" or Supplementary Materials
+      body1<- x1 %>% rvest::html_node(body_text) %>% rvest::html_text() #cut after "References and Notes" or Supplementary Materials
       b1<-gregexpr(pattern ='http://www.sciencemag.org/about/science-licenses-journal-article-reuse',body1)
       b2<-gregexpr(pattern ='Supporting Online Material',body1)
       b3<-gregexpr(pattern ="Supplementary Materials",body1)
@@ -177,8 +181,8 @@ get_details<-function(article_list){
 
       body2<-substring(body1,1, cut-1 )
 
-      body3<-replace_white(body2)
-      body4<-replace_non_ascii(body3)
+      body3<-textclean::replace_white(body2)
+      body4<-textclean::replace_non_ascii(body3)
 
       results_list[[i]]<-list(url=url1, term=c(term), title=title_text,  type=type_text, body=body4, abstract=abstract_text, date=date, issue=issue, volume=volume, DOI=doi_address, affil_list= affil_list, author_list=author_list, affiliations=affiliations)
     }
@@ -186,8 +190,41 @@ get_details<-function(article_list){
   return(results_list)
 }
 
-#test1<-get_article_list("Systematic")
-test2<-get_details(test1[1:10])
-#article_list<-test1[1:10]
-x111<-test2[c(4,6,9,12)]
-toJSON(x111, pretty=T, auto_unbox = T)
+
+save_to_db<-function(results_list){
+
+    #connect to mongo
+    #m <- mongolite::mongo("iris")
+
+    for(i in 1:length(results_list)){
+
+        #do quality check
+
+        #check if in DB
+
+        #if so add another search term tag to entry
+
+        #otherwise
+
+        #convert to JSON
+        #entry<-jsonlite::toJSON(results_list[[i]], pretty=T, auto_unbox = T)
+        #m$insert(entry)
+    }
+
+    #close mongo connection
+
+}
+
+#  #test1<-get_article_list("Systematic", max=10)
+#  #test1$articles<-test1$articles[1:10]
+# test2<-get_details(test1)
+# x111<-test2[c(4,6,9,12)]
+# #
+# cool1<-jsonlite::toJSON(x111[1], pretty=T, auto_unbox = T)
+# #
+#
+
+
+
+
+

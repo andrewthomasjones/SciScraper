@@ -9,3 +9,17 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+Imports:rvest,
+        stringi,
+        stringr,
+        jsonlite,
+        RMongo,
+        magrittr,
+        xml2,
+        textclean,
+        mongolite
+Depends:
+  R (>= 3.4.0)
+Suggests: knitr,
+    rmarkdown,
+    testthat
