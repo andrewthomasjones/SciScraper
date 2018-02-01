@@ -215,6 +215,7 @@ save_to_db<-function(results_list){
 
 }
 
+<<<<<<< HEAD
 test1<-get_article_list("Systematic", max=10)
 test1$articles<-test1$articles[1:10]
 test2<-get_details(test1)
@@ -222,6 +223,16 @@ x111<-test2[c(4,6,9,12)]
 cool1<-jsonlite::toJSON(x111[1], pretty=T, auto_unbox = T)
 
 
+=======
+#  #test1<-get_article_list("Systematic", max=10)
+#  #test1$articles<-test1$articles[1:10]
+# test2<-get_details(test1)
+# x111<-test2[c(4,6,9,12)]
+# #
+# cool1<-jsonlite::toJSON(x111[1], pretty=T, auto_unbox = T)
+# #
+#
+>>>>>>> 6fda6c08b8f45c2a741ff1ff822ac799f8062d01
 
 
 
