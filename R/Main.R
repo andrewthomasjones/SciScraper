@@ -3,9 +3,10 @@ get_article_list<-function(term1, max=NA, A=2007, B=2017){
   #get list of articles
   articles<-list()
   #term<-"systems"
+  print(paste0("Finding '", term1, "' from ", A, " to ", B, "."))
   for(j in A:B){
 
-    print(paste0("Finding ", term1, " from ", A, " to ", B, "."))
+
     term<-gsub(" ","%2B",term1)
 
 
@@ -45,7 +46,7 @@ get_article_list<-function(term1, max=NA, A=2007, B=2017){
 
     }
   }
-  print(paste0("Total of  ", length(articles), " overall for ", term1, "."))
+  print(paste0("Total of  ", length(articles), " overall for '", term1, "'."))
   return(list(term=term, articles=articles))
 }
 
@@ -68,15 +69,13 @@ get_details<-function(articles){
     affliation<-".affiliation-list"
   #get actual stuff
   results_list<-list()
-
+  print(paste0("Finding details for ", length(article_list), " articles."))
+  pb<-utils::txtProgressBar(min = 0, max = length(article_list), style=3)
   for(i in 1:length(article_list)){
-
-    print(paste0("Finding details for  ", i, " of ", length(article_list), " articles."))
-
     url1<-article_list[[i]]
 
     x1<-xml2::read_html(paste0("http://science.sciencemag.org",url1))
-
+    utils::setTxtProgressBar(pb, i)
     #x1<-xml2::read_html("http://science.sciencemag.org/content/359/6373/309.full")
 
 
@@ -94,10 +93,13 @@ get_details<-function(articles){
       }else{
         abstract_text<-x1 %>% rvest::html_node(abstract) %>% rvest::html_text()
         k=2
-        while(nchar( abstract_text)< 500){
-          abstract_text<-x1 %>% rvest::html_node(paste0("#p-",k)) %>% rvest::html_text()
-          k=k+1
+        if(is.numeric(nchar(abstract_text))){
+            while(nchar(abstract_text)< 500){
+              abstract_text<-x1 %>% rvest::html_node(paste0("#p-",k)) %>% rvest::html_text()
+              k=k+1
+            }
         }
+
       }
 
 
@@ -192,8 +194,10 @@ get_details<-function(articles){
       body4<-textclean::replace_non_ascii(body3)
 
       results_list[[i]]<-list(url=url1, term=c(term), title=title_text,  type=type_text, body=body4, abstract=abstract_text, date=date, issue=issue, volume=volume, DOI=doi_address, affil_list= affil_list, author_list=author_list, affiliations=affiliations)
+
     }
   }
+  close(pb)
   return(results_list)
 }
 
