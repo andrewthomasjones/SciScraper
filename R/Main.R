@@ -4,12 +4,15 @@ get_article_list<-function(term, max=NA, A=2007, B=2017){
   articles<-list()
   #term<-"systems"
   for(j in A:B){
+
+
+    term<-gsub(" ","%2B",term)
+
     #search
     base_html<-paste0("http://science.sciencemag.org/search/text_abstract_title%3A",
-                      term, "%20text_abstract_title_flags%3Amatch-all%20limit_from%3A",
+                      term, "%20text_abstract_title_flags%3Amatch-phrase%20limit_from%3A",
           j,"-01-01%20limit_to%3A",j,
           "-12-31%20jcode%3Asci%20numresults%3A100%20sort%3Apublication-date%20direction%3Aascending%20format_result%3Astandard")
-
 
     html1<-xml2::read_html(base_html)
     how_many_res<- html1 %>% rvest::html_nodes("h2") %>% rvest::html_text()
@@ -191,49 +194,25 @@ get_details<-function(articles){
 }
 
 
-save_to_db<-function(results_list){
+save_to_db<-function(results_list, db="SciScraper1", collection="FirstRun"){
 
     #connect to mongo
-    #m <- mongolite::mongo("iris")
+    m1<-mongolite::mongo(collection = collection, db = db, url = "mongodb://localhost", verbose = TRUE)
 
     for(i in 1:length(results_list)){
 
         #do quality check
-
-        #check if in DB
-
-        #if so add another search term tag to entry
-
-        #otherwise
-
+        if(length(results_list[[i]])>0){
+        #check if in DB??
         #convert to JSON
-        #entry<-jsonlite::toJSON(results_list[[i]], pretty=T, auto_unbox = T)
-        #m$insert(entry)
+        entry<-jsonlite::toJSON(results_list[[i]], pretty=T, auto_unbox = T)
+        m1$insert(entry)
+        }
     }
 
     #close mongo connection
 
 }
-
-<<<<<<< HEAD
-test1<-get_article_list("Systematic", max=10)
-test1$articles<-test1$articles[1:10]
-test2<-get_details(test1)
-x111<-test2[c(4,6,9,12)]
-cool1<-jsonlite::toJSON(x111[1], pretty=T, auto_unbox = T)
-
-
-=======
-#  #test1<-get_article_list("Systematic", max=10)
-#  #test1$articles<-test1$articles[1:10]
-# test2<-get_details(test1)
-# x111<-test2[c(4,6,9,12)]
-# #
-# cool1<-jsonlite::toJSON(x111[1], pretty=T, auto_unbox = T)
-# #
-#
->>>>>>> 6fda6c08b8f45c2a741ff1ff822ac799f8062d01
-
 
 
 
