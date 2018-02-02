@@ -1,12 +1,14 @@
-get_article_list<-function(term, max=NA, A=2007, B=2017){
+get_article_list<-function(term1, max=NA, A=2007, B=2017){
 
   #get list of articles
   articles<-list()
   #term<-"systems"
   for(j in A:B){
 
+    print(paste0("Finding ", term1, " from ", A, " to ", B, "."))
+    term<-gsub(" ","%2B",term1)
 
-    term<-gsub(" ","%2B",term)
+
 
     #search
     base_html<-paste0("http://science.sciencemag.org/search/text_abstract_title%3A",
@@ -18,6 +20,7 @@ get_article_list<-function(term, max=NA, A=2007, B=2017){
     how_many_res<- html1 %>% rvest::html_nodes("h2") %>% rvest::html_text()
     x<-substr(how_many_res[1],1,nchar(how_many_res[1])-9)
     count<-as.numeric(gsub(",","",stringi::stri_extract_last_words(x)))
+    print(paste0("Total of  ", count, " in ", j, "."))
     #print(count)
     pages<-ceiling(count/100)
 
@@ -42,7 +45,7 @@ get_article_list<-function(term, max=NA, A=2007, B=2017){
 
     }
   }
-
+  print(paste0("Total of  ", length(articles), " overall for ", term1, "."))
   return(list(term=term, articles=articles))
 }
 
@@ -68,6 +71,7 @@ get_details<-function(articles){
 
   for(i in 1:length(article_list)){
 
+    print(paste0("Finding details for  ", i, " of ", length(article_list), " articles."))
 
     url1<-article_list[[i]]
 
@@ -81,7 +85,7 @@ get_details<-function(articles){
 
     title_text<- x1 %>% rvest::html_node(title) %>% rvest::html_text()
     type_text<-x1 %>% rvest::html_node(type) %>% rvest::html_text()
-    print(type_text)
+    #print(type_text)
     if(type_text%in% c("Review", "Report", "Research Article")){
 
       if(type_text=="Review"){
@@ -195,7 +199,7 @@ get_details<-function(articles){
 
 
 save_to_db<-function(results_list, db="SciScraper1", collection="FirstRun"){
-
+    print("Writing to db.")
     #connect to mongo
     m1<-mongolite::mongo(collection = collection, db = db, url = "mongodb://localhost", verbose = TRUE)
 
