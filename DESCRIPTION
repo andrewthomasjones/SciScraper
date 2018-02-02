@@ -17,7 +17,8 @@ Imports:rvest,
         magrittr,
         xml2,
         textclean,
-        mongolite
+        mongolite,
+        utils
 Depends:
   R (>= 3.4.0)
 Suggests: knitr,

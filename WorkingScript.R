@@ -7,3 +7,4 @@ for(j in 1:m){
     details<-get_details(articles)
     save_to_db(details, db="SciScraper1",collection="FullCollection")
 }
+
