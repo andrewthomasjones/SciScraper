@@ -93,7 +93,7 @@ get_details<-function(articles){
       }else{
         abstract_text<-x1 %>% rvest::html_node(abstract) %>% rvest::html_text()
         k=2
-        if(is.numeric(nchar(abstract_text))){
+        if(!is.na(nchar(abstract_text))){
             while(nchar(abstract_text)< 500){
               abstract_text<-x1 %>% rvest::html_node(paste0("#p-",k)) %>% rvest::html_text()
               k=k+1
@@ -207,19 +207,21 @@ save_to_db<-function(results_list, db="SciScraper1", collection="FirstRun"){
     #connect to mongo
     m1<-mongolite::mongo(collection = collection, db = db, url = "mongodb://localhost", verbose = TRUE)
 
-    for(i in 1:length(results_list)){
+    if((length(results_list))>0){
+        for(i in 1:length(results_list)){
 
-        #do quality check
-        if(length(results_list[[i]])>0){
-        #check if in DB??
-        #convert to JSON
-        entry<-jsonlite::toJSON(results_list[[i]], pretty=T, auto_unbox = T)
-        m1$insert(entry)
+
+            #do quality check
+            if(length(results_list[[i]])>0){
+            #check if in DB??
+            #convert to JSON
+            entry<-jsonlite::toJSON(results_list[[i]], pretty=T, auto_unbox = T)
+            m1$insert(entry)
+            }
         }
     }
-
     #close mongo connection
-
+    rm(m1)
 }
 
 
