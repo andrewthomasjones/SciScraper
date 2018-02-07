@@ -53,8 +53,11 @@ get_article_list<-function(term1, max=NA, A=2007, B=2017){
 
 
 get_details<-function(articles){
-
+    db<-"SciScraper2"
     term<-articles$term
+    collection<-gsub(" ", "", term)
+    m1<-mongolite::mongo(collection = collection, db = db, url = "mongodb://localhost", verbose = TRUE)
+
     article_list<-articles$articles
 
     #data components
@@ -96,6 +99,7 @@ get_details<-function(articles){
         if(!is.na(nchar(abstract_text))){
             while(nchar(abstract_text)< 500){
               abstract_text<-x1 %>% rvest::html_node(paste0("#p-",k)) %>% rvest::html_text()
+              if(is.na(nchar(abstract_text))){break;}
               k=k+1
             }
         }
@@ -194,7 +198,10 @@ get_details<-function(articles){
       body4<-textclean::replace_non_ascii(body3)
 
       results_list[[i]]<-list(url=url1, term=c(term), title=title_text,  type=type_text, body=body4, abstract=abstract_text, date=date, issue=issue, volume=volume, DOI=doi_address, affil_list= affil_list, author_list=author_list, affiliations=affiliations)
-
+        if(length(results_list[[i]])>0){
+            entry<-jsonlite::toJSON(results_list[[i]], pretty=T, auto_unbox = T)
+            m1$insert(entry)
+        }
     }
   }
   close(pb)
