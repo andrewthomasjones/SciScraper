@@ -18,7 +18,8 @@ Imports:rvest,
         xml2,
         textclean,
         mongolite,
-        utils
+        utils,
+        httr
 Depends:
   R (>= 3.4.0)
 Suggests: knitr,
