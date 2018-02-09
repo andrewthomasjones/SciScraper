@@ -51,6 +51,19 @@ get_article_list<-function(term1, max=NA, A=2007, B=2017){
 }
 
 
+get_page <- function(add1) {
+    add2<-httr::GET(add1)
+
+    if (httr::status_code(add2) >= 300){
+        results_list[[i]] <- (NA_character_)
+    }else{
+
+        x1<-xml2::read_html(add2)
+
+        return(x1)
+    }
+}
+
 
 get_details<-function(articles){
     db<-"SciScraper2"
@@ -77,9 +90,28 @@ get_details<-function(articles){
   for(i in 1:length(article_list)){
     url1<-article_list[[i]]
 
-    x1<-xml2::read_html(paste0("http://science.sciencemag.org",url1))
+    add1<-paste0("http://science.sciencemag.org",url1)
+
+    x1 <- NULL
+    attempt <- 1
+    while( is.null(x1) && attempt <= 5 ) {
+        attempt <- attempt + 1
+        try(
+            x1 <- get_page(add1)
+        )
+    }
+
+    if(is.null(x1)){
+        break;
+    }
+
+
+
+
     utils::setTxtProgressBar(pb, i)
     #x1<-xml2::read_html("http://science.sciencemag.org/content/359/6373/309.full")
+
+
 
 
     #add chcek is already in data base and add under search term
@@ -203,7 +235,7 @@ get_details<-function(articles){
             m1$insert(entry)
         }
     }
-  }
+    }
   close(pb)
   return(results_list)
 }

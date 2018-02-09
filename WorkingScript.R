@@ -2,6 +2,8 @@
 terms<-read.csv("wordlist.csv")
 m<-length(terms$Seach.Terms)
 
+
+#details<-get_details(articles)
 for(j in 1:m){
     articles<-get_article_list(terms$Seach.Terms[j])
     details<-get_details(articles)
