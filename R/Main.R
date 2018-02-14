@@ -74,36 +74,65 @@ get_details<-function(articles){
 
     article_list<-articles$articles
     if(length(article_list)>0){
-        #data components
+    type<-".overline"
+    title<-".highwire-cite-title"
+    abstract<-"#p-1"
+    abstract_rev<-"#p-11"
+    date_etc<-".meta-line"
+    body_text<-".article__body"
+    author<-"#contrib-group-1"
+    affliation<-".affiliation-list"
+  #get actual stuff
+  results_list<-list()
+  print(paste0("Finding details for ", length(article_list), " articles."))
+  pb<-utils::txtProgressBar(min = 0, max = length(article_list), style=3)
+  for(i in 1:length(article_list)){
+    url1<-article_list[[i]]
 
-        type<-".overline"
-        title<-".highwire-cite-title"
-        abstract<-"#p-1"
-        abstract_rev<-"#p-11"
-        date_etc<-".meta-line"
-        body_text<-".article__body"
-        author<-"#contrib-group-1"
-        affliation<-".affiliation-list"
-      #get actual stuff
-      results_list<-list()
-      print(paste0("Finding details for ", length(article_list), " articles."))
-      pb<-utils::txtProgressBar(min = 0, max = length(article_list), style=3)
-      for(i in 1:length(article_list)){
-        url1<-article_list[[i]]
+    add1<-paste0("http://science.sciencemag.org",url1)
 
-        add1<-paste0("http://science.sciencemag.org",url1)
+    x1 <- NULL
+    attempt <- 1
+    while( is.null(x1) && attempt <= 5 ) {
+        attempt <- attempt + 1
+        try(
+            x1 <- get_page(add1)
+        )
+    }
 
-        x1 <- NULL
-        attempt <- 1
-        while( is.null(x1) && attempt <= 5 ) {
-            attempt <- attempt + 1
-            try(
-                x1 <- get_page(add1)
-            )
-        }
+    if(is.null(x1)){
+        break;
+    }
 
-        if(is.null(x1)){
-            break;
+
+
+
+    utils::setTxtProgressBar(pb, i)
+    #x1<-xml2::read_html("http://science.sciencemag.org/content/359/6373/309.full")
+
+
+
+
+    #add chcek is already in data base and add under search term
+    #add check type is %in% c("Review", "Report", "Research Article")
+
+    title_text<- x1 %>% rvest::html_node(title) %>% rvest::html_text()
+    type_text<-x1 %>% rvest::html_node(type) %>% rvest::html_text()
+    #print(type_text)
+    if(type_text%in% c("Review", "Report", "Research Article")){
+
+      if(type_text=="Review"){
+        #if type is Review
+        abstract_text<-x1 %>% rvest::html_node(abstract_rev) %>% rvest::html_text()
+      }else{
+        abstract_text<-x1 %>% rvest::html_node(abstract) %>% rvest::html_text()
+        k=2
+        if(!is.na(nchar(abstract_text))){
+            while(nchar(abstract_text)< 500){
+              abstract_text<-x1 %>% rvest::html_node(paste0("#p-",k)) %>% rvest::html_text()
+              if(is.na(nchar(abstract_text))){break;}
+              k=k+1
+            }
         }
 
 
@@ -245,6 +274,8 @@ get_details<-function(articles){
       close(pb)
       return(results_list)
     }
+  }
+ }
 }
 
 
