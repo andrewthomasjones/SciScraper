@@ -428,7 +428,7 @@ check_for_gaps<-function(article_list, db="SciScraper2"){
     term<-article_list$term
     term2<- gsub("%2B", " ",(term))
     collection<-gsub(" ", "", simpleCap(term2))
-    m1<-mongolite::mongo(collection = collection, db = db, url = "mongodb://localhost", verbose = TRUE)
+    m1<-mongolite::mongo(collection = collection, db = db, url = "mongodb://localhost", verbose = F)
 
     n<-length(list1)
     pb<-utils::txtProgressBar(min = 0, max = n, style=3)
