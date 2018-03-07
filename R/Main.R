@@ -244,7 +244,7 @@ get_details<-function(articles){
 
 
 
-get_single_entry<-function(url1){
+get_single_entry<-function(url1, term){
 
     type<-".overline"
     title<-".highwire-cite-title"
@@ -380,7 +380,7 @@ get_single_entry<-function(url1){
         body3<-textclean::replace_white(body2)
         body4<-textclean::replace_non_ascii(body3)
 
-        results_list<-list(url=url1, term=c(term), title=title_text,  type=type_text, body=body4, abstract=abstract_text, date=date, issue=issue, volume=volume, DOI=doi_address, affil_list= affil_list, author_list=author_list, affiliations=affiliations)
+        results_list<-list(url=url1, term=term, title=title_text,  type=type_text, body=body4, abstract=abstract_text, date=date, issue=issue, volume=volume, DOI=doi_address, affil_list= affil_list, author_list=author_list, affiliations=affiliations)
 
         return(results_list)
     }else{
@@ -442,7 +442,7 @@ check_for_gaps<-function(article_list, db="SciScraper2"){
         )
 
         if(nrow(test)==0){
-            entry<-jsonlite::toJSON(get_single_entry(list1[[i]]), pretty=T, auto_unbox = T)
+            entry<-jsonlite::toJSON(get_single_entry(list1[[i]], term), pretty=T, auto_unbox = T)
             if(entry!=0){
                 m1$insert(entry)
             }
@@ -451,10 +451,11 @@ check_for_gaps<-function(article_list, db="SciScraper2"){
         if(nrow(test)>1){
             dups_list[[j]]<-test
             j<-j+1
+            save(dups_list, file=paste0("/home/andrew/Dropbox/Consulting/Systems/Code/dups_list_",term2, ".RData"))
         }
 
     }
-    save(dups_list, file=paste0("/home/andrew/Dropbox/Consulting/Systems/Code/dups_list_",term2, ".RData"))
+
     close(pb)
 }
 
