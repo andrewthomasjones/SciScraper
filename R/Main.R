@@ -65,9 +65,8 @@ get_page <- function(add1) {
 }
 
 
-get_details<-function(articles){
+get_details<-function(articles, db="SciScraper3"){
 
-    db<-"SciScraper2"
     term<-articles$term
     collection<-gsub(" ", "", term)
     m1<-mongolite::mongo(collection = collection, db = db, url = "mongodb://localhost", verbose = TRUE)
@@ -186,22 +185,22 @@ get_details<-function(articles){
             affil_list<-list(1)
           }
 
-          date_etc<-try(x1 %>% rvest::html_node(date_etc) %>% rvest::html_text(), silent = TRUE)
+          date_etc_res<-try(x1 %>% rvest::html_node(date_etc) %>% rvest::html_text(), silent = TRUE)
 
-          if(class(date_etc)!="try-error"){
+          if(class(date_etc_res)!="try-error"){
             #date_etc<-x1 %>% rvest::html_node(date_etc) %>% rvest::html_text()#needs parsing
-            d1<-gregexpr(pattern ='DOI:',date_etc)
-            doi_address<-trimws(substring(date_etc, (d1[[1]]+4) , nchar(date_etc) ))
+            d1<-gregexpr(pattern ='DOI:',date_etc_res)
+            doi_address<-trimws(substring(date_etc_res, (d1[[1]]+4) , nchar(date_etc_res) ))
 
-            v1<-gregexpr(pattern ='Vol.',date_etc)
-            volume<-trimws(substring(date_etc, (v1[[1]]+4) , (v1[[1]]+7) ))
+            v1<-gregexpr(pattern ='Vol.',date_etc_res)
+            volume<-trimws(substring(date_etc_res, (v1[[1]]+4) , (v1[[1]]+7) ))
 
-            I1<-gregexpr(pattern ='Issue',date_etc)
+            I1<-gregexpr(pattern ='Issue',date_etc_res)
             issue<-trimws(substring(date_etc, (I1[[1]]+5) , (I1[[1]]+9) ))
 
-            d2<-gregexpr(pattern ='Science',date_etc)
-            d3<-gregexpr(pattern =':',date_etc)[[1]]
-            date<-as.Date( trimws(gsub("[[:punct:][:blank:]]+", " ", (substring(date_etc, (d2[[1]]+7) , (d3[[1]]-1) )))), "%d %b %Y")
+            d2<-gregexpr(pattern ='Science',date_etc_res)
+            d3<-gregexpr(pattern =':',date_etc_res)[[1]]
+            date<-as.Date( trimws(gsub("[[:punct:][:blank:]]+", " ", (substring(date_etc_res, (d2[[1]]+7) , (d3[[1]]-1) )))), "%d %b %Y")
           }else{
             date<-NA
             volume<-NA
@@ -214,8 +213,10 @@ get_details<-function(articles){
           b1<-gregexpr(pattern ='http://www.sciencemag.org/about/science-licenses-journal-article-reuse',body1)
           b2<-gregexpr(pattern ='Supporting Online Material',body1)
           b3<-gregexpr(pattern ="Supplementary Materials",body1)
+          b4<-gregexpr(pattern = "References and Notes",body1)
 
-          cut_options<-c(b1[[1]], b2[[1]], b3[[1]])
+
+          cut_options<-c(b1[[1]], b2[[1]], b3[[1]], b4[[1]])
           cut<-min(cut_options[cut_options>0])
 
           body2<-substring(body1,1, cut-1 )
@@ -343,22 +344,22 @@ get_single_entry<-function(url1, term){
             affil_list<-list(1)
         }
 
-        date_etc<-try(x1 %>% rvest::html_node(date_etc) %>% rvest::html_text(), silent = TRUE)
+        date_etc_res<-try(x1 %>% rvest::html_node(date_etc) %>% rvest::html_text(), silent = TRUE)
 
-        if(class(date_etc)!="try-error"){
+        if(class(date_etc_res)!="try-error"){
             #date_etc<-x1 %>% rvest::html_node(date_etc) %>% rvest::html_text()#needs parsing
-            d1<-gregexpr(pattern ='DOI:',date_etc)
-            doi_address<-trimws(substring(date_etc, (d1[[1]]+4) , nchar(date_etc) ))
+            d1<-gregexpr(pattern ='DOI:',date_etc_res)
+            doi_address<-trimws(substring(date_etc_res, (d1[[1]]+4) , nchar(date_etc_res) ))
 
-            v1<-gregexpr(pattern ='Vol.',date_etc)
-            volume<-trimws(substring(date_etc, (v1[[1]]+4) , (v1[[1]]+7) ))
+            v1<-gregexpr(pattern ='Vol.',date_etc_res)
+            volume<-trimws(substring(date_etc_res, (v1[[1]]+4) , (v1[[1]]+7) ))
 
-            I1<-gregexpr(pattern ='Issue',date_etc)
-            issue<-trimws(substring(date_etc, (I1[[1]]+5) , (I1[[1]]+9) ))
+            I1<-gregexpr(pattern ='Issue',date_etc_res)
+            issue<-trimws(substring(date_etc_res, (I1[[1]]+5) , (I1[[1]]+9) ))
 
-            d2<-gregexpr(pattern ='Science',date_etc)
-            d3<-gregexpr(pattern =':',date_etc)[[1]]
-            date<-as.Date( trimws(gsub("[[:punct:][:blank:]]+", " ", (substring(date_etc, (d2[[1]]+7) , (d3[[1]]-1) )))), "%d %b %Y")
+            d2<-gregexpr(pattern ='Science',date_etc_res)
+            d3<-gregexpr(pattern =':',date_etc_res)[[1]]
+            date<-as.Date( trimws(gsub("[[:punct:][:blank:]]+", " ", (substring(date_etc_res, (d2[[1]]+7) , (d3[[1]]-1) )))), "%d %b %Y")
         }else{
             date<-NA
             volume<-NA
@@ -371,8 +372,10 @@ get_single_entry<-function(url1, term){
         b1<-gregexpr(pattern ='http://www.sciencemag.org/about/science-licenses-journal-article-reuse',body1)
         b2<-gregexpr(pattern ='Supporting Online Material',body1)
         b3<-gregexpr(pattern ="Supplementary Materials",body1)
+        b4<-gregexpr(pattern = "References and Notes",body1)
 
-        cut_options<-c(b1[[1]], b2[[1]], b3[[1]])
+
+        cut_options<-c(b1[[1]], b2[[1]], b3[[1]], b4[[1]])
         cut<-min(cut_options[cut_options>0])
 
         body2<-substring(body1,1, cut-1 )
@@ -424,7 +427,7 @@ check_for_gaps<-function(article_list, db="SciScraper2"){
     list1<-article_list$articles
 
 
-    db<-"SciScraper2"
+    #db<-"SciScraper2"
     term<-article_list$term
     term2<- gsub("%2B", " ",(term))
     collection<-gsub(" ", "", simpleCap(term2))
@@ -460,7 +463,42 @@ check_for_gaps<-function(article_list, db="SciScraper2"){
 }
 
 
+runQA<-function(QAlist, article_list, index, db){
+    list1<-article_list$articles
+    term<-article_list$term
+    term2<- gsub("%2B", " ",(term))
+    collection<-gsub(" ", "", simpleCap(term2))
+    m1<-mongolite::mongo(collection = collection, db = db, url = "mongodb://localhost", verbose = F)
 
+
+    for(i in index){
+        test <- m1$find(
+            query = paste0("{ \"url\":\"", QAlist$url[i] , "\" }"),
+            fields = '{"url" : true , "date" : true, "body" : true}'
+        )
+
+        if(nrow(test)!=0){
+            QAlist$entry[i] <- TRUE
+
+            if(!is.na(test$date)){
+                QAlist$date[i] <-TRUE
+            }
+
+            if(!is.na(test$body)){
+                QAlist$body[i] <-TRUE
+            }
+        }else{
+            QAlist$entry[i] <- F
+            QAlist$date[i] <-F
+            QAlist$body[i] <-F
+        }
+
+
+
+    }
+
+    return(QAlist)
+}
 
 
 
