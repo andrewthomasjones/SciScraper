@@ -6,29 +6,6 @@ test <- m1$find(
 allsystemtext<-test$body
 
 
-
-
-
-m1<-mongolite::mongo(collection ="ComplexSystem" , db = "SciScraper2", url = "mongodb://localhost", verbose = TRUE)
-test <- m1$find(
-    query = '{}',
-    fields = '{"issue" : true, "url" : true}',
-)
-sum(is.na(test$issue))
-
-
-
-
-write(allsystemtext, file="SystemBodyText2.txt")
-
-m1<-mongolite::mongo(collection ="System" , db = "SciScraper3", url = "mongodb://localhost", verbose = TRUE)
-test <- m1$find(
-    query = '{}',
-    fields = '{"body" : true}',
-)
-allsystemtext<-test$body
-
-
 allsystemtext = tolower(allsystemtext) #make it lower case
 allsystemtext = gsub('[[:punct:]]', '', allsystemtext) #remove punctuation
 
