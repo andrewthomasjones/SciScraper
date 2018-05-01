@@ -55,9 +55,9 @@ systematically_text <- text_dump(test2)
 systemic_text <- text_dump(test3)
 
 write(system_text, file="SystemText.txt")
+write(systematically_text, file="systematically.txt")
+write(systemic_text, file="systemic_text.txt")
 
-PATH="/Applications/Julia-0.6.2.app/Contents/Resources/julia/bin/:${PATH}"
-export PATH
 
 
 
@@ -69,9 +69,14 @@ export PATH
 #
 #/Users/andrewjones/Projects/AdaGram.jl/train.jl
 
-Base.Collections.heapify!(Tuple{AdaGram.HierarchicalSoftmaxNode,Int64}[], Base.Order.By{AdaGram.##2#4}(AdaGram.#2)) has been moved to the package DataStructures.jl.
-
 ################
+############ JULIA ZONE ################
+#  /Users/andrewjones/Projects/AdaGram.jl/utils/tokenize.sh /Users/andrewjones/Projects/SciScraper/systematically.txt /Users/andrewjones/Projects/SciScraper/systematicallyTextTokenized.txt
+#  /Users/andrewjones/Projects/AdaGram.jl/utils/dictionary.sh /Users/andrewjones/Projects/SciScraper/systematicallyTextTokenized.txt /Users/andrewjones/Projects/SciScraper/systematicallyDictionary.txt
+#  cd /Users/andrewjones/Projects/SciScraper
+# /Users/andrewjones/Projects/AdaGram.jl/train.sh systematicallyTextTokenized.txt systematicallyDictionary.txt systematicallyModel
+#
+#/Users/andrewjones/Projects/AdaGram.jl/train.jl
 
 
 
